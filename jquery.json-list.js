@@ -13,7 +13,7 @@
 			groupLabel: 'name',
 			itemLabel: 'name',
 			success: function( jsonList ) {},
-			onListItem: function( listItem, data ) {},
+			onListItem: function( listItem, data, isGroup ) {},
 		}, options);
 		var self = this;
 		$.getJSON(options.url, options.data, function(data, textStatus) {
@@ -71,7 +71,7 @@
 			var self = this;
 			$.each(groups, function(id, group) {
 				var listItem = $('<li>' + self.getGroupLabel(group) + '</li>');
-				self.options.onListItem.call(this, listItem, group);
+				self.options.onListItem.call(this, listItem, group, true);
 				if( group.subGroups || group.children ) {
 					var subList = $('<ol>');
 					if( group.subGroups ) {
@@ -90,7 +90,7 @@
 			var self = this;
 			$.each(items, function(id, item) {
 				var listItem = $('<li>' + self.getItemLabel(item) + '</li>');
-				self.options.onListItem.call(this, listItem, item);
+				self.options.onListItem.call(this, listItem, item, false);
 				list.append(listItem);
 			});
 		},
