@@ -6,6 +6,7 @@
 	};
 	var JSONList = function( el, options ) {
 		this.el = $(el);
+		// fill options with default values
 		this.options = options = $.extend({
 			type: 'groupedItems',
 			url: null,
