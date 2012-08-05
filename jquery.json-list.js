@@ -15,6 +15,7 @@
 			itemLabel: 'name',
 			success: function( jsonList ) {},
 			onListItem: function( listItem, data, isGroup ) {},
+			onResponse: function( data, textStatus ) { return data; }
 		}, options);
 		var self = this;
 		$.getJSON(options.url, options.data, function(data, textStatus) {
@@ -23,6 +24,7 @@
 	};
 	JSONList.prototype = {
 		handleResponse: function( data, textStatus ) {
+			data = this.options.onResponse.call(null, data, textStatus);
 			if( this.options.type == 'groupedItems' ) {
 				this.groupedItems(data, textStatus);
 			}
@@ -62,11 +64,13 @@
 				}
 				group.subGroups = subGroups;
 			});
-			this.el.append(this.createList(groups));
+			this.createList(groups);
 		},
 		createList: function( groups ) {
-			var list = $('<ol>');
-			return this.appendGroupItems(groups, list);
+			if( this.el.is('ol, ul') )
+				this.appendGroupItems(groups, this.el);
+			else
+				this.el.append(this.appendGroupItems(groups, $('<ol>')));
 		},
 		appendGroupItems: function( groups, list ) {
 			var self = this;
