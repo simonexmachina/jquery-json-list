@@ -1,38 +1,41 @@
 (function($) {
 	$.fn.jsonList = function( options ) {
 		return this.each(function() {
-			new JSONList(this, options);
+			new JSONList().init(this, options);
 		});
 	};
-	var JSONList = function( el, options ) {
-		this.el = $(el);
-		// fill options with default values
-		this.options = options = $.extend({
-			type: 'groupedItems',
-			url: null,
-			data: null,
-			groupLabel: 'name',
-			itemLabel: 'name',
-			success: function( jsonList ) {},
-			onListItem: function( listItem, data, isGroup ) {},
-			onResponse: function( data, textStatus ) { return data; }
-		}, options);
-		var self = this;
-		$.getJSON(options.url, options.data, function(data, textStatus) {
-			self.handleResponse(data, textStatus);
-		});
-	};
+	var JSONList = function() {};
 	JSONList.prototype = {
-		handleResponse: function( data, textStatus ) {
-			data = this.options.onResponse.call(null, data, textStatus);
-			if( this.options.type == 'groupedItems' ) {
-				this.groupedItems(data, textStatus);
-			}
-			if( this.options.success ) {
-				this.options.success.call(this.el, this);
-			}
+		init: function( el, options ) {
+			this.el = $(el);
+			// fill options with default values
+			this.options = options = $.extend({
+				type: 'groupedItems',
+				url: null,
+				data: null,
+				groupLabel: 'name',
+				itemLabel: 'name',
+				onSuccess: function( jsonList ) {},
+				onListItem: function( listItem, data, isGroup ) {},
+				onResponse: function( data, textStatus ) {}
+			}, options);
+			var self = this;
+			$(this)
+				.bind('success', this.options.onSuccess)
+				.bind('listItem', this.options.onListItem)
+				.bind('response', this.options.onResponse);
+			$.getJSON(options.url, options.data, function(data, textStatus) {
+				self.handleResponse(data, textStatus);
+			});
 		},
-		groupedItems: function( data, textStatus ) {
+		handleResponse: function( data, textStatus ) {
+			$(this).trigger('response', [data, textStatus]);
+			if( this.options.type == 'groupedItems' ) {
+				this.createListForGroupedItems(data, textStatus);
+			}
+			$(this).trigger('success', [this.el]);
+		},
+		createListForGroupedItems: function( data, textStatus ) {
 			var opts = $.extend({
 					groups: 'groups',
 					items: 'items',
@@ -76,7 +79,7 @@
 			var self = this;
 			$.each(groups, function(id, group) {
 				var listItem = $('<li>' + self.getGroupLabel(group) + '</li>');
-				self.options.onListItem.call(this, listItem, group, true);
+				$(self).trigger('listItem', [listItem, group, true]);
 				if( group.subGroups || group.children ) {
 					var subList = $('<ol>');
 					if( group.subGroups ) {
@@ -95,7 +98,7 @@
 			var self = this;
 			$.each(items, function(id, item) {
 				var listItem = $('<li>' + self.getItemLabel(item) + '</li>');
-				self.options.onListItem.call(this, listItem, item, false);
+				$(self).trigger('listItem', [listItem, item, false]);
 				list.append(listItem);
 			});
 		},
