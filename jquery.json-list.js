@@ -38,7 +38,7 @@
 		createListForGroupedItems: function( data, textStatus ) {
 			var opts = $.extend({
 					groups: 'groups',
-					items: 'items',
+					items: 'items'
 				}, this.options),
 				groups = {},
 				items = {};
