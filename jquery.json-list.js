@@ -55,14 +55,18 @@
 					});
 				}
 				group.children = children;
+				group.isSub = false;
 				groups[group.id] = group;
 			});
 			$.each(groups, function(id, group) {
 				var subGroups = [];
 				if( group.subGroups ) {
 					$.each(group.subGroups, function(i, childId) {
+						
 						subGroups.push(groups[childId]);
-						delete groups[childId];
+						//delete groups[childId]; -- instead of delete, add information that is subgrup
+						groups[childId].isSub = true;
+						
 					});
 				}
 				group.subGroups = subGroups;
@@ -73,24 +77,26 @@
 			if( this.el.is('ol, ul') )
 				this.appendGroupItems(groups, this.el);
 			else
-				this.el.append(this.appendGroupItems(groups, $('<ol>')));
+				this.el.append(this.appendGroupItems(groups, $('<ol>'), false));
 		},
-		appendGroupItems: function( groups, list ) {
+		appendGroupItems: function( groups, list, ignoreVerification ) {
 			var self = this;
 			$.each(groups, function(id, group) {
-				var listItem = $('<li>' + self.getGroupLabel(group) + '</li>');
-				$(self).trigger('listItem', [listItem, group, true]);
-				if( group.subGroups || group.children ) {
-					var subList = $('<ol>');
-					if( group.subGroups ) {
-						self.appendGroupItems(group.subGroups, subList);
+				if (!group.isSub || ignoreVerification) {
+					var listItem = $('<li>' + self.getGroupLabel(group) + '</li>');
+					$(self).trigger('listItem', [listItem, group, true]);
+					if( group.subGroups || group.children ) {
+						var subList = $('<ol>');
+						if( group.subGroups ) {
+							self.appendGroupItems(group.subGroups, subList, true);
+						}
+						if( group.children ) {
+							self.appendItems(group.children, subList);
+						}
+						listItem.append(subList);
 					}
-					if( group.children ) {
-						self.appendItems(group.children, subList);
-					}
-					listItem.append(subList);
+					list.append(listItem);
 				}
-				list.append(listItem);
 			});
 			return list;
 		},
